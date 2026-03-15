@@ -1,0 +1,84 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if email is verified
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+    
+    // Helper function to check if the user owns the document
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+    
+    // Helper function to validate profile data structure
+    function isValidProfileData() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['uid', 'firstName', 'lastName', 'studentId', 'email', 'course', 'major', 'year', 'section', 'emailVerified', 'profileCompleted', 'createdAt', 'updatedAt'])
+        && data.uid is string && data.uid.size() > 0
+        && data.firstName is string && data.firstName.size() >= 2
+        && data.lastName is string && data.lastName.size() >= 2
+        && data.studentId is string && data.studentId.size() == 6 && data.studentId.matches('^[0-9]{6}$')
+        && data.email is string
+        && data.course is string && data.course.size() >= 2
+        && data.major is string && data.major.size() >= 2
+        && data.year is number && data.year >= 1 && data.year <= 4
+        && data.section is string && data.section.size() >= 1
+        && data.emailVerified is bool
+        && data.profileCompleted is bool;
+    }
+    
+    // Helper function to ensure UID matches document ID
+    function isValidUID(uid) {
+      return request.resource.data.uid == uid && uid == request.auth.uid;
+    }
+    
+    // Helper function to validate student ID format (6 digits only)
+    function isValidStudentID() {
+      return request.resource.data.studentId is string 
+        && request.resource.data.studentId.size() == 6
+        && request.resource.data.studentId.matches('^[0-9]{6}$');
+    }
+    
+    // Users collection - documents are keyed by uid
+    match /users/{uid} {
+      // Only authenticated and email-verified users can create their own profile
+      allow create: if isOwner(uid)
+                    && isEmailVerified()
+                    && isValidUID(uid)
+                    && isValidStudentID()
+                    && request.resource.data.email == request.auth.token.email
+                    && request.resource.data.emailVerified == true
+                    && request.resource.data.profileCompleted == true
+                    && isValidProfileData();
+      
+      // Users can read their own profile
+      // Any authenticated user can read profiles (needed for studentId duplicate checking)
+      allow read: if isAuthenticated();
+      
+      // Users can update their own profile
+      // Cannot change uid, email, emailVerified status, or studentId after creation
+      allow update: if isOwner(uid)
+                    && request.resource.data.uid == resource.data.uid
+                    && request.resource.data.studentId == resource.data.studentId
+                    && request.resource.data.email == resource.data.email
+                    && request.resource.data.emailVerified == resource.data.emailVerified
+                    && isValidProfileData();
+      
+      // No deletions allowed
+      allow delete: if false;
+    }
+    
+    // Deny all other requests by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
