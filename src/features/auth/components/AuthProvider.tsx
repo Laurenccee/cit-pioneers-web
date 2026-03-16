@@ -9,10 +9,8 @@ import {
 } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import {
-  getUserProfile,
-  UserProfile,
-} from '@/features/auth/services/userService';
+import { getUserProfile } from '@/features/auth/services/userService';
+import type { UserProfile } from '@/types';
 
 interface AuthContextType {
   user: User | null;

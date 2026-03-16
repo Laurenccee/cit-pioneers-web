@@ -7,7 +7,7 @@ import {
   query,
   where,
 } from 'firebase/firestore';
-import type { UserProfile } from '@/features/auth/services/userService';
+import type { UserProfile } from '@/types';
 
 const USERS_COLLECTION = 'users';
 

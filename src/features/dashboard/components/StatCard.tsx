@@ -5,7 +5,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { UserProfile } from '@/features/auth/services/userService';
+import type { UserProfile } from '@/types';
 import React from 'react';
 
 function ordinalSuffix(n: number) {

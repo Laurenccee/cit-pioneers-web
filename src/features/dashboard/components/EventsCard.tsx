@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import { events } from '@/features/dashboard/data/eventsData';
+import { events } from '@/lib/data/eventsData';
 
 export default function EventsCard() {
   const router = useRouter();

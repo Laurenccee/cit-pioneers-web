@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { UserProfile } from '@/features/auth/services/userService';
+import type { UserProfile } from '@/types';
 import { getAllStudents } from '@/features/students/services/studentService';
 import {
   Card,

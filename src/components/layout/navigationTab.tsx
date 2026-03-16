@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '../ui/button';
 import { LogOut, Menu } from 'lucide-react';
-import type { Role } from '@/features/auth/services/userService';
+import type { Role } from '@/types';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/dashboard' },

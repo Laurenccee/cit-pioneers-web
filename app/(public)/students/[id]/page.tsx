@@ -3,10 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useRequireAdmin } from '@/features/auth';
-import {
-  getUserProfile,
-  UserProfile,
-} from '@/features/auth/services/userService';
+import { getUserProfile } from '@/features/auth/services/userService';
+import type { UserProfile } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';

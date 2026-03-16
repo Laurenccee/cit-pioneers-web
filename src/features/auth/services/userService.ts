@@ -1,35 +1,15 @@
 import { db } from '@/lib/firebase/client';
 import {
-  collection,
   doc,
   getDoc,
   updateDoc,
-  getDocs,
-  query,
-  where,
 } from 'firebase/firestore';
+import type { UserProfile } from '@/types';
 
 const USERS_COLLECTION = 'users';
 const ADMIN_COLLECTION = 'admin';
 
-export type Role = 'student' | 'admin';
-
-export interface UserProfile {
-  uid: string;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  role: Role;
-  studentId?: string;
-  course?: string;
-  major?: string;
-  year?: number;
-  section?: string;
-  profileCompleted: boolean;
-  mustChangePassword: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type { UserProfile };
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   try {

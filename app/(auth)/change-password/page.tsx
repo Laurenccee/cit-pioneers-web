@@ -9,6 +9,7 @@ import { updatePassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { updateMustChangePassword } from '@/features/auth/services/userService';
+import type { UserProfile } from '@/types';
 import { useAuth } from '@/features/auth';
 import {
   Card,
