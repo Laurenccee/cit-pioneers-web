@@ -53,7 +53,7 @@ export default function SignUpForm() {
       try {
         const { createUserWithEmailAndPassword, sendEmailVerification } =
           await import('firebase/auth');
-        const { auth } = await import('@/services/firebase');
+        const { auth } = await import('@/lib/firebase');
 
         // Create user in Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(

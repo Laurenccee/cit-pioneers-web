@@ -38,7 +38,7 @@ import {
 import { z } from 'zod';
 import { IdCard, User } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth';
 
 type ProfileSetupFormData = z.infer<typeof profileSetupSchema>;
 
@@ -97,7 +97,8 @@ export default function ProfileSetupForm() {
           // Force token refresh to ensure email_verified claim is updated
           await user.getIdToken(true);
 
-          const { createUserProfile } = await import('@/lib/firestore');
+          const { createUserProfile } =
+            await import('@/lib/firebase/firestore');
 
           await createUserProfile(
             user.uid,

@@ -1,10 +1,10 @@
 'use client';
 
-import { useAuthContext } from '@/components/AuthProvider';
+import { useAuthContext } from '@/features/auth/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { signOut as firebaseSignOut } from 'firebase/auth';
-import { auth } from '@/services/firebase';
+import { auth } from '@/lib/firebase';
 
 export function useAuth() {
   const { user, loading } = useAuthContext();

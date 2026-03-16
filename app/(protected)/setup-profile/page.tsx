@@ -1,9 +1,10 @@
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import ProfileSetupForm from '@/features/profile/components/ProfileSetupForm';
+import SetupProfileLoading from './loading';
 
 export default function ProfileSetupPage() {
   const { user, loading } = useAuth();
@@ -20,11 +21,11 @@ export default function ProfileSetupPage() {
   }, [user, loading, router]);
 
   if (loading || !user) {
-    return null;
+    return <SetupProfileLoading />;
   }
 
   if (!user.emailVerified) {
-    return null;
+    return <SetupProfileLoading />;
   }
 
   return (

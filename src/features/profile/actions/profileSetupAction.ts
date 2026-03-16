@@ -1,7 +1,7 @@
 'use server';
 
 import { profileSetupSchema } from '@/features/profile/schemas/profileSchemas';
-import { studentIdExists } from '@/lib/firestore';
+import { studentIdExists } from '@/lib/firebase';
 
 export async function profileSetupAction(formData: unknown) {
   try {

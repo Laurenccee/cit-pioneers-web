@@ -11,11 +11,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Mail, CheckCircle2, Loader } from 'lucide-react';
 import { EmailVerificationChecker } from '@/features/verification/components/EmailVerificationChecker';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { sendEmailVerification } from 'firebase/auth';
 import { toast } from 'sonner';
+import VerifyEmailLoading from './loading';
 
 export default function VerifyEmailPage() {
   const { user, loading } = useAuth();
@@ -52,7 +53,7 @@ export default function VerifyEmailPage() {
   };
 
   if (loading || !user) {
-    return null;
+    return <VerifyEmailLoading />;
   }
 
   return (

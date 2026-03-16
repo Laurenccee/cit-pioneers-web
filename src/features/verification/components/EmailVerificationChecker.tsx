@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import { auth } from '@/services/firebase';
+import { useAuth } from '@/features/auth';
+import { auth } from '@/lib/firebase';
 import { onIdTokenChanged } from 'firebase/auth';
 import { Loader, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';

@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   description: 'College of Industrial Technology Hub',
 };
 
-export default function RootLayout({
+export default function ProtectedLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

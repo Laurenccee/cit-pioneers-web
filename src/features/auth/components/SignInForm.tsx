@@ -67,7 +67,7 @@ export default function SignInForm() {
     startTransition(async () => {
       try {
         const { signInWithEmailAndPassword } = await import('firebase/auth');
-        const { auth } = await import('@/services/firebase');
+        const { auth } = await import('@/lib/firebase');
 
         await signInWithEmailAndPassword(auth, data.email, data.password);
 
