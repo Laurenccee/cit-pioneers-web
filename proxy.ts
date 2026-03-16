@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -11,19 +12,23 @@ const publicRoutes = [
   '/schedule',
 ];
 
-// Only accessible when NOT authenticated
+// Only accessible when NOT authenticated (redirect to dashboard if logged in)
 const authRoutes = ['/sign-in'];
 
-// Requires authentication
+// Requires a verified auth token (redirect to sign-in if not authenticated)
+// Note: /verify-email and /setup-profile are self-protected client-side
+// since unverified users won't have an auth-token cookie
 const protectedRoutes = ['/dashboard', '/change-password'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const authToken = request.cookies.get('auth-token')?.value;
+
   const isAuthenticated = !!authToken;
-  console.log(
-    `[Middleware] ${pathname} — user ${isAuthenticated ? 'logged in ✓' : 'not logged in ✗'}`,
+  logger.info(
+    '[Middleware]',
+    `${pathname} — user ${isAuthenticated ? 'logged in ✓' : 'not logged in ✗'}`,
   );
 
   // Redirect root to home always
@@ -49,7 +54,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/home', request.url));
   }
 
-  // Protected routes: require verified auth token
+  // Protected routes: redirect to sign-in if not authenticated
   if (isProtectedRoute && !authToken) {
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }

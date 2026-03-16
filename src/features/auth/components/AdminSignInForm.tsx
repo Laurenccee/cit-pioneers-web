@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -29,16 +29,26 @@ import {
   RectangleEllipsis,
 } from 'lucide-react';
 import { signInSchema } from '../schemas/authSchemas';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
 type SignInFormData = z.infer<typeof signInSchema>;
 
-export default function SignInForm() {
+export default function AdminSignInForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
+
+  // Check for verification success
+  useEffect(() => {
+    if (searchParams.get('verified') === 'true') {
+      toast.success('Email verified successfully!', {
+        description: 'You can now sign in to access your dashboard.',
+      });
+    }
+  }, [searchParams]);
 
   const {
     control,
@@ -55,10 +65,22 @@ export default function SignInForm() {
   const onSubmit = (data: SignInFormData) => {
     startTransition(async () => {
       try {
-        const { signInWithEmailAndPassword } = await import('firebase/auth');
+        const { signInWithEmailAndPassword, signOut } =
+          await import('firebase/auth');
         const { auth } = await import('@/lib/firebase');
 
-        await signInWithEmailAndPassword(auth, data.email, data.password);
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          data.email,
+          data.password,
+        );
+
+        const tokenResult = await userCredential.user.getIdTokenResult();
+        if (!tokenResult.claims['admin']) {
+          await signOut(auth);
+          toast.error('Access denied. This account is not an admin.');
+          return;
+        }
 
         toast.success('Signed in successfully!');
         router.push('/home');
@@ -89,14 +111,12 @@ export default function SignInForm() {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="flex flex-col items-center">
         <CardTitle className="text-2xl">SIGN IN</CardTitle>
-        <CardDescription>
-          Sign in with your Student ID and password
-        </CardDescription>
+        <CardDescription>Sign in with your email and password</CardDescription>
       </CardHeader>
       <form id="signin-form" onSubmit={handleSubmit(onSubmit, onError)}>
         <CardContent className="flex flex-col gap-4">
           <div className="space-y-2">
-            <Label htmlFor="studentId">Student ID</Label>
+            <Label htmlFor="email">Email</Label>
             <Controller
               name="email"
               control={control}
@@ -107,9 +127,9 @@ export default function SignInForm() {
                   </InputGroupAddon>
                   <InputGroupInput
                     {...field}
-                    id="studentId"
-                    type="text"
-                    placeholder="Enter your Student ID"
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
                     disabled={isPending}
                     autoComplete="email"
                     aria-invalid={!!errors.email}

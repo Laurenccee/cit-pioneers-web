@@ -17,11 +17,16 @@ service cloud.firestore {
     function isOwner(uid) {
       return isAuthenticated() && request.auth.uid == uid;
     }
+
+    // Helper function to check if the requesting user is an admin
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.admin == true;
+    }
     
     // Helper function to validate profile data structure
     function isValidProfileData() {
       let data = request.resource.data;
-      return data.keys().hasAll(['uid', 'firstName', 'lastName', 'studentId', 'email', 'course', 'major', 'year', 'section', 'emailVerified', 'profileCompleted', 'createdAt', 'updatedAt'])
+      return data.keys().hasAll(['uid', 'firstName', 'lastName', 'studentId', 'email', 'course', 'major', 'year', 'section', 'emailVerified', 'profileCompleted', 'role', 'createdAt', 'updatedAt'])
         && data.uid is string && data.uid.size() > 0
         && data.firstName is string && data.firstName.size() >= 2
         && data.lastName is string && data.lastName.size() >= 2
@@ -32,7 +37,8 @@ service cloud.firestore {
         && data.year is number && data.year >= 1 && data.year <= 4
         && data.section is string && data.section.size() >= 1
         && data.emailVerified is bool
-        && data.profileCompleted is bool;
+        && data.profileCompleted is bool
+        && data.role in ['admin', 'student'];
     }
     
     // Helper function to ensure UID matches document ID
@@ -49,15 +55,23 @@ service cloud.firestore {
     
     // Users collection - documents are keyed by uid
     match /users/{uid} {
-      // Only authenticated and email-verified users can create their own profile
-      allow create: if isOwner(uid)
-                    && isEmailVerified()
-                    && isValidUID(uid)
+      // Admins can create a profile for any user
+      // Regular users can only create their own profile (self-registration)
+      allow create: if isEmailVerified()
                     && isValidStudentID()
-                    && request.resource.data.email == request.auth.token.email
-                    && request.resource.data.emailVerified == true
-                    && request.resource.data.profileCompleted == true
-                    && isValidProfileData();
+                    && isValidProfileData()
+                    && (
+                      // Self-registration: owns the doc, role must be 'student'
+                      (isOwner(uid)
+                        && isValidUID(uid)
+                        && request.resource.data.email == request.auth.token.email
+                        && request.resource.data.emailVerified == true
+                        && request.resource.data.profileCompleted == true
+                        && request.resource.data.role == 'student')
+                      ||
+                      // Admin creating a student profile
+                      isAdmin()
+                    );
       
       // Users can read their own profile
       // Any authenticated user can read profiles (needed for studentId duplicate checking)
@@ -76,6 +90,17 @@ service cloud.firestore {
       allow delete: if false;
     }
     
+    // Admin collection - only admins can read their own document
+    match /admin/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
+    // Pre-registered students — only admins can read/write
+    match /preregistered_students/{docId} {
+      allow read, write: if isAdmin();
+    }
+
     // Deny all other requests by default
     match /{document=**} {
       allow read, write: if false;

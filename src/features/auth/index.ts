@@ -1,10 +1,9 @@
 // Auth components
 export { AuthProvider, useAuthContext } from './components/AuthProvider';
-export { SignInForm } from './components/SignInForm';
-export { SignUpForm } from './components/SignUpForm';
+export { default as SignInForm } from './components/SignInForm';
 
 // Auth hooks
-export { useAuth, useRequireAuth } from './hooks/useAuth';
+export { useAuth, useRequireAuth, useRequireAdmin } from './hooks/useAuth';
 
 // Auth schemas
 export * from './schemas/authSchemas';

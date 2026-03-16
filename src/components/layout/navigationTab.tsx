@@ -4,7 +4,8 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '../ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, Menu } from 'lucide-react';
+import type { Role } from '@/features/auth/services/userService';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/dashboard' },
@@ -16,15 +17,19 @@ const NAV_ITEMS = [
 
 export default function NavigationTab({
   studentId,
+  email,
+  role,
   onClick,
 }: {
   studentId?: string;
+  email?: string;
+  role?: Role;
   onClick?: () => void;
 }) {
   const pathname = usePathname();
 
   return (
-    <nav className=" bg-card">
+    <nav className="bg-card">
       <div className="container mx-auto flex h-16 items-center justify-between px-6">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center rounded-md justify-center bg-primary font-oswald text-xl font-bold text-primary-foreground">
@@ -45,30 +50,44 @@ export default function NavigationTab({
                   className={`flex items-center gap-2 px-4 text-base font-medium whitespace-nowrap transition-colors ${
                     isActive
                       ? 'underline text-primary'
-                      : 'hover:underline hover:text-primary text-muted-foreground '
+                      : 'hover:underline hover:text-primary text-muted-foreground'
                   }`}
                 >
                   {label}
                 </Link>
               );
             })}
+            {role === 'admin' && (
+              <Link
+                href="/students"
+                className={`flex items-center gap-1.5 px-4 text-base font-medium whitespace-nowrap transition-colors ${
+                  pathname === '/students'
+                    ? 'underline text-primary'
+                    : 'hover:underline hover:text-primary text-muted-foreground'
+                }`}
+              >
+                Students
+              </Link>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <span className="hidden text-base text-muted-foreground sm:block">
-            Student ID: {studentId}
-          </span>
-          <Button
-            className=" h-10 w-10 font-oswald"
-            size="icon-lg"
-            onClick={onClick}
-          >
-            <LogOut />
-          </Button>
+          {studentId || email || role ? (
+            <>
+              <span className="hidden text-base text-muted-foreground sm:block">
+                {studentId ? `ID: ${studentId}` : email}
+              </span>
+              <Button className="h-10 px-4 font-oswald gap-2" onClick={onClick}>
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <Link href="/sign-in">
+              <Button className="h-10 px-8 font-oswald">Login</Button>
+            </Link>
+          )}
         </div>
       </div>
-
-      {/* Tab Navigation */}
     </nav>
   );
 }

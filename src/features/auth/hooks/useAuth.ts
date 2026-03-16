@@ -7,7 +7,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 export function useAuth() {
-  const { user, loading } = useAuthContext();
+  const { user, loading, profile, loadingProfile, isAdmin } = useAuthContext();
 
   const signOut = async () => {
     try {
@@ -20,6 +20,9 @@ export function useAuth() {
   return {
     user,
     loading,
+    profile,
+    loadingProfile,
+    isAdmin,
     signOut,
   };
 }
@@ -35,4 +38,21 @@ export function useRequireAuth(redirectUrl = '/sign-in') {
   }, [user, loading, router, redirectUrl]);
 
   return { user, loading };
+}
+
+export function useRequireAdmin(redirectUrl = '/home') {
+  const { user, loading, isAdmin, loadingProfile } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/sign-in/admin');
+      return;
+    }
+    if (!loading && !loadingProfile && !isAdmin) {
+      router.push(redirectUrl);
+    }
+  }, [user, loading, isAdmin, loadingProfile, router, redirectUrl]);
+
+  return { user, loading: loading || loadingProfile, isAdmin };
 }

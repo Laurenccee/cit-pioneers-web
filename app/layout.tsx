@@ -1,11 +1,5 @@
 import type { Metadata } from 'next';
-import {
-  Geist,
-  Geist_Mono,
-  Outfit,
-  Instrument_Serif,
-  Oswald,
-} from 'next/font/google';
+import { Instrument_Serif, Oswald } from 'next/font/google';
 import '@/styles/globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/sonner';
