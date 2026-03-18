@@ -1,6 +1,7 @@
 'use client';
 
 import NavigationTab from '@/components/layout/navigationTab';
+import NavigationLoading from '@/components/layout/navLoading';
 import { useAuth } from '@/features/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -11,7 +12,7 @@ export default function MainLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { profile, loadingProfile, signOut } = useAuth();
+  const { loading, profile, loadingProfile, signOut } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -23,7 +24,9 @@ export default function MainLayout({
   const handleSignOut = async () => {
     await signOut();
   };
-
+  if (loading || loadingProfile) {
+    return <NavigationLoading />;
+  }
   return (
     <>
       <header className="sticky top-0 z-10">

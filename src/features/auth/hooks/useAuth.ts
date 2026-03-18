@@ -7,7 +7,8 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 export function useAuth() {
-  const { user, loading, profile, loadingProfile, isAdmin } = useAuthContext();
+  const { user, loading, profile, loadingProfile, isAdmin, refreshProfile } =
+    useAuthContext();
 
   const signOut = async () => {
     try {
@@ -24,6 +25,7 @@ export function useAuth() {
     loadingProfile,
     isAdmin,
     signOut,
+    refreshProfile,
   };
 }
 

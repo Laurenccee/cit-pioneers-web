@@ -4,3 +4,8 @@ export function formatDate(date: Date = new Date()): string {
     day: 'numeric',
   });
 }
+export function formatYear(date: Date = new Date()): string {
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+  });
+}

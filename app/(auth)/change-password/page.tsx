@@ -1,16 +1,8 @@
 'use client';
 
-import { useTransition } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
-import { updatePassword } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase';
-import { updateMustChangePassword } from '@/features/auth/services/userService';
-import type { UserProfile } from '@/types';
-import { useAuth } from '@/features/auth';
+import { useState } from 'react';
+import { Controller } from 'react-hook-form';
+import { useChangePassword } from '@/features/auth';
 import {
   Card,
   CardContent,
@@ -19,55 +11,33 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
-
-const changePasswordSchema = z
-  .object({
-    newPassword: z.string().min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'],
-  });
-
-type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+import { Button } from '@/components/ui/button';
+import {
+  Eye,
+  EyeClosed,
+  KeyRound,
+  Loader,
+  RectangleEllipsis,
+} from 'lucide-react';
 
 export default function ChangePasswordPage() {
-  const { user } = useAuth();
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-
+  const { form, isPending, onSubmit, onError } = useChangePassword();
   const {
-    register,
+    control,
     handleSubmit,
     formState: { errors },
-  } = useForm<ChangePasswordFormData>({
-    resolver: zodResolver(changePasswordSchema),
-  });
+  } = form;
 
-  const onSubmit = (data: ChangePasswordFormData) => {
-    startTransition(async () => {
-      const currentUser = auth.currentUser;
-      if (!currentUser || !user) return;
-
-      try {
-        await updatePassword(currentUser, data.newPassword);
-        await updateMustChangePassword(user.uid, false);
-        toast.success('Password changed successfully!');
-        router.replace('/dashboard');
-      } catch (error: any) {
-        if (error.code === 'auth/requires-recent-login') {
-          toast.error('Session expired. Please sign in again.');
-          router.push('/sign-in');
-        } else {
-          toast.error(error.message ?? 'Failed to change password.');
-        }
-      }
-    });
-  };
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
@@ -79,45 +49,134 @@ export default function ChangePasswordPage() {
             before continuing.
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
+        <form
+          id="change-password-form"
+          onSubmit={handleSubmit(onSubmit, onError)}
+        >
+          <CardContent className="flex flex-col gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="currentPassword">Current Password</Label>
+              <Controller
+                name="currentPassword"
+                control={control}
+                render={({ field }) => (
+                  <InputGroup>
+                    <InputGroupAddon>
+                      <KeyRound />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      {...field}
+                      id="currentPassword"
+                      type={showCurrent ? 'text' : 'password'}
+                      placeholder="Your current password"
+                      disabled={isPending}
+                      autoComplete="current-password"
+                      aria-invalid={!!errors.currentPassword}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        tabIndex={-1}
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setShowCurrent(!showCurrent)}
+                        aria-label={
+                          showCurrent ? 'Hide password' : 'Show password'
+                        }
+                      >
+                        {showCurrent ? <Eye /> : <EyeClosed />}
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  </InputGroup>
+                )}
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="newPassword">New Password</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                placeholder="At least 8 characters"
-                disabled={isPending}
-                {...register('newPassword')}
+              <Controller
+                name="newPassword"
+                control={control}
+                render={({ field }) => (
+                  <InputGroup>
+                    <InputGroupAddon>
+                      <RectangleEllipsis />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      {...field}
+                      id="newPassword"
+                      type={showNew ? 'text' : 'password'}
+                      placeholder="At least 8 characters"
+                      disabled={isPending}
+                      autoComplete="new-password"
+                      aria-invalid={!!errors.newPassword}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        tabIndex={-1}
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setShowNew(!showNew)}
+                        aria-label={showNew ? 'Hide password' : 'Show password'}
+                      >
+                        {showNew ? <Eye /> : <EyeClosed />}
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  </InputGroup>
+                )}
               />
-              {errors.newPassword && (
-                <p className="text-xs text-destructive">
-                  {errors.newPassword.message}
-                </p>
-              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Repeat your new password"
-                disabled={isPending}
-                {...register('confirmPassword')}
+              <Controller
+                name="confirmPassword"
+                control={control}
+                render={({ field }) => (
+                  <InputGroup>
+                    <InputGroupAddon>
+                      <RectangleEllipsis />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      {...field}
+                      id="confirmPassword"
+                      type={showConfirm ? 'text' : 'password'}
+                      placeholder="Repeat your new password"
+                      disabled={isPending}
+                      autoComplete="new-password"
+                      aria-invalid={!!errors.confirmPassword}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        tabIndex={-1}
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setShowConfirm(!showConfirm)}
+                        aria-label={
+                          showConfirm ? 'Hide password' : 'Show password'
+                        }
+                      >
+                        {showConfirm ? <Eye /> : <EyeClosed />}
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  </InputGroup>
+                )}
               />
-              {errors.confirmPassword && (
-                <p className="text-xs text-destructive">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
             </div>
           </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? 'Saving…' : 'Set New Password'}
-            </Button>
-          </CardFooter>
         </form>
+        <CardFooter>
+          <Button
+            size="lg"
+            type="submit"
+            form="change-password-form"
+            className="w-full"
+            disabled={isPending}
+          >
+            {isPending ? 'Saving…' : 'Set New Password'}
+            {isPending && <Loader className="animate-spin" />}
+          </Button>
+        </CardFooter>
       </Card>
     </main>
   );

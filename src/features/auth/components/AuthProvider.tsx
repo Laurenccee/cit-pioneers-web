@@ -18,6 +18,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   loadingProfile: boolean;
   isAdmin: boolean;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -26,6 +27,7 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   loadingProfile: true,
   isAdmin: false,
+  refreshProfile: async () => {},
 });
 
 export const useAuthContext = () => useContext(AuthContext);
@@ -36,6 +38,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const refreshProfile = async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+    const data = await getUserProfile(currentUser.uid);
+    setProfile(data ?? null);
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -61,7 +70,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, profile, loadingProfile, isAdmin }}
+      value={{
+        user,
+        loading,
+        profile,
+        loadingProfile,
+        isAdmin,
+        refreshProfile,
+      }}
     >
       {children}
     </AuthContext.Provider>

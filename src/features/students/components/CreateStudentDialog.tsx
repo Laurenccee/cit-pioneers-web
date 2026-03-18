@@ -1,10 +1,6 @@
 'use client';
 
-import { useTransition } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
+import { Controller } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -21,39 +17,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import {
-  courses,
-  majorsByCourse,
-  allMajors,
-  years,
-  sections,
-} from '@/lib/data/profileOptions';
-import { createStudentAuthAction } from '@/features/students/actions/createStudentAction';
-import { createStudentAccount } from '@/features/students/services/studentService';
-
-const createStudentSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
-  firstName: z.string().min(2, 'First name must be at least 2 characters'),
-  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-  studentId: z
-    .string()
-    .length(6, 'Student ID must be 6 digits')
-    .regex(/^\d+$/, 'Student ID must contain only numbers'),
-  course: z.string().min(2, 'Course is required'),
-  major: z.string().min(2, 'Major is required'),
-  year: z
-    .string()
-    .min(1, 'Please select a year level')
-    .refine((val) => ['1', '2', '3', '4'].includes(val), {
-      message: 'Please select a valid year level',
-    }),
-  section: z.string().min(1, 'Section is required'),
-});
-
-type CreateStudentFormData = z.infer<typeof createStudentSchema>;
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group';
+import { User, Hash } from 'lucide-react';
+import { courses, years, sections } from '@/lib/data/academicOptions';
+import { useCreateStudent } from '../hooks/useCreateStudent';
 
 interface CreateStudentDialogProps {
   open: boolean;
@@ -66,74 +39,13 @@ export function CreateStudentDialog({
   onOpenChange,
   onSuccess,
 }: CreateStudentDialogProps) {
-  const [isPending, startTransition] = useTransition();
-
-  const {
-    register,
-    handleSubmit,
-    control,
-    watch,
-    setValue,
-    reset,
-    formState: { errors },
-  } = useForm<CreateStudentFormData>({
-    resolver: zodResolver(createStudentSchema),
-    defaultValues: {
-      email: '',
-      firstName: '',
-      lastName: '',
-      studentId: '',
-      course: '',
-      major: '',
-      year: '',
-      section: '',
-    },
-  });
-
-  const selectedCourse = watch('course');
-  const availableMajors = selectedCourse
-    ? (majorsByCourse[selectedCourse] ?? [])
-    : allMajors;
-
-  const onSubmit = (data: CreateStudentFormData) => {
-    startTransition(async () => {
-      // Default password is the student's ID; they must change it on first login
-      const result = await createStudentAuthAction(data.email, data.studentId);
-
-      if (result.error || !result.uid) {
-        toast.error(result.error ?? 'Failed to create user account.');
-        return;
-      }
-
-      try {
-        await createStudentAccount(
-          result.uid,
-          data.firstName,
-          data.lastName,
-          data.email,
-          data.studentId,
-          data.course,
-          data.major,
-          parseInt(data.year),
-          data.section,
-          true, // mustChangePassword
-        );
-        toast.success(
-          `${data.firstName} ${data.lastName} has been added successfully.`,
-        );
-        reset();
-        onOpenChange(false);
-        onSuccess();
-      } catch (error: any) {
-        toast.error(error?.message ?? 'Failed to create student profile.');
-      }
+  const { form, isPending, availableMajors, onSubmit, onError } =
+    useCreateStudent({
+      onSuccess,
+      onClose: () => onOpenChange(false),
     });
-  };
 
-  const onError = () => {
-    const firstError = Object.values(errors)[0];
-    if (firstError?.message) toast.error(firstError.message as string);
-  };
+  const { register, handleSubmit, control, setValue, reset } = form;
 
   return (
     <Dialog
@@ -150,36 +62,12 @@ export function CreateStudentDialog({
           <DialogTitle>Add New Student</DialogTitle>
           <DialogDescription>
             Create an account and profile for a new student. The default
-            password will be their Student ID — they will be required to change
-            it on first login.
+            password is <strong>P@$$W0rd</strong> — they will be required to
+            change it on first login.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-4">
-          {/* Account */}
-          <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Account
-            </p>
-            <div className="space-y-2">
-              <Label htmlFor="cs-email">Email</Label>
-              <Input
-                id="cs-email"
-                type="email"
-                placeholder="student@email.com"
-                disabled={isPending}
-                {...register('email')}
-              />
-              {errors.email && (
-                <p className="text-xs text-destructive">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <Separator />
-
           {/* Personal */}
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -188,47 +76,47 @@ export function CreateStudentDialog({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="cs-firstName">First Name</Label>
-                <Input
-                  id="cs-firstName"
-                  placeholder="First name"
-                  disabled={isPending}
-                  {...register('firstName')}
-                />
-                {errors.firstName && (
-                  <p className="text-xs text-destructive">
-                    {errors.firstName.message}
-                  </p>
-                )}
+                <InputGroup>
+                  <InputGroupAddon>
+                    <User />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="cs-firstName"
+                    placeholder="First name"
+                    disabled={isPending}
+                    {...register('firstName')}
+                  />
+                </InputGroup>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cs-lastName">Last Name</Label>
-                <Input
-                  id="cs-lastName"
-                  placeholder="Last name"
-                  disabled={isPending}
-                  {...register('lastName')}
-                />
-                {errors.lastName && (
-                  <p className="text-xs text-destructive">
-                    {errors.lastName.message}
-                  </p>
-                )}
+                <InputGroup>
+                  <InputGroupAddon>
+                    <User />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="cs-lastName"
+                    placeholder="Last name"
+                    disabled={isPending}
+                    {...register('lastName')}
+                  />
+                </InputGroup>
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="cs-studentId">Student ID</Label>
-              <Input
-                id="cs-studentId"
-                placeholder="6-digit ID"
-                maxLength={6}
-                disabled={isPending}
-                {...register('studentId')}
-              />
-              {errors.studentId && (
-                <p className="text-xs text-destructive">
-                  {errors.studentId.message}
-                </p>
-              )}
+              <InputGroup>
+                <InputGroupAddon>
+                  <Hash />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="cs-studentId"
+                  placeholder="6-digit ID"
+                  maxLength={6}
+                  disabled={isPending}
+                  {...register('studentId')}
+                />
+              </InputGroup>
             </div>
           </div>
 
@@ -253,7 +141,7 @@ export function CreateStudentDialog({
                     }}
                     disabled={isPending}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full border-2 border-primary bg-transparent">
                       <SelectValue placeholder="Select course" />
                     </SelectTrigger>
                     <SelectContent>
@@ -266,11 +154,6 @@ export function CreateStudentDialog({
                   </Select>
                 )}
               />
-              {errors.course && (
-                <p className="text-xs text-destructive">
-                  {errors.course.message}
-                </p>
-              )}
             </div>
             <div className="space-y-2">
               <Label>Major</Label>
@@ -283,7 +166,7 @@ export function CreateStudentDialog({
                     onValueChange={field.onChange}
                     disabled={isPending || availableMajors.length === 0}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full border-2 border-primary bg-transparent">
                       <SelectValue placeholder="Select major" />
                     </SelectTrigger>
                     <SelectContent>
@@ -296,11 +179,6 @@ export function CreateStudentDialog({
                   </Select>
                 )}
               />
-              {errors.major && (
-                <p className="text-xs text-destructive">
-                  {errors.major.message}
-                </p>
-              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -314,7 +192,7 @@ export function CreateStudentDialog({
                       onValueChange={field.onChange}
                       disabled={isPending}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full border-2 border-primary bg-transparent">
                         <SelectValue placeholder="Year" />
                       </SelectTrigger>
                       <SelectContent>
@@ -327,11 +205,6 @@ export function CreateStudentDialog({
                     </Select>
                   )}
                 />
-                {errors.year && (
-                  <p className="text-xs text-destructive">
-                    {errors.year.message}
-                  </p>
-                )}
               </div>
               <div className="space-y-2">
                 <Label>Section</Label>
@@ -344,7 +217,7 @@ export function CreateStudentDialog({
                       onValueChange={field.onChange}
                       disabled={isPending}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full border-2 border-primary bg-transparent">
                         <SelectValue placeholder="Section" />
                       </SelectTrigger>
                       <SelectContent>
@@ -357,11 +230,6 @@ export function CreateStudentDialog({
                     </Select>
                   )}
                 />
-                {errors.section && (
-                  <p className="text-xs text-destructive">
-                    {errors.section.message}
-                  </p>
-                )}
               </div>
             </div>
           </div>

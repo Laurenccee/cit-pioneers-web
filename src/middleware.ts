@@ -15,12 +15,14 @@ const publicRoutes = [
 const authRoutes = ['/sign-in'];
 
 // Requires authentication
-const protectedRoutes = ['/dashboard', '/change-password'];
+const protectedRoutes = ['/home', '/change-password'];
 
 // Requires admin claim
-const adminRoutes = ['/dashboard'];
+const adminRoutes = ['/home'];
 
-async function verifyToken(token: string): Promise<{ valid: boolean; isAdmin: boolean }> {
+async function verifyToken(
+  token: string,
+): Promise<{ valid: boolean; isAdmin: boolean }> {
   try {
     // Decode the JWT payload (middle segment) without a library — verification
     // happens server-side via Firebase Admin in API routes; here we do a basic
@@ -46,9 +48,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/home', request.url));
   }
 
-  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
+  const isPublicRoute = publicRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
-  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
+  const isProtectedRoute = protectedRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
   const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
 
   // Public routes: always accessible

@@ -1,12 +1,8 @@
 import { db } from '@/lib/firebase/client';
-import {
-  doc,
-  getDoc,
-  updateDoc,
-} from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import type { UserProfile } from '@/types';
 
-const USERS_COLLECTION = 'users';
+const USERS_COLLECTION = 'students';
 const ADMIN_COLLECTION = 'admin';
 
 export type { UserProfile };

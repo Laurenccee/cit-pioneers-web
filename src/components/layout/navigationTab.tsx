@@ -8,7 +8,7 @@ import { LogOut, Menu } from 'lucide-react';
 import type { Role } from '@/types';
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', href: '/dashboard' },
+  { label: 'Home', href: '/home' },
   { label: 'News', href: '/news' },
   { label: 'Schedule', href: '/schedule' },
   { label: 'Faculty', href: '/faculty' },
@@ -32,11 +32,11 @@ export default function NavigationTab({
     <nav className="bg-card">
       <div className="container mx-auto flex h-16 items-center justify-between px-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center rounded-md justify-center bg-primary font-oswald text-xl font-bold text-primary-foreground">
+          <div className="flex h-12 w-12 items-center rounded-md justify-center bg-primary  text-2xl text-primary-foreground">
             P
           </div>
           <span className="text-2xl tracking-tight text-foreground">
-            Pioneers CIT
+            School HUB
           </span>
         </div>
         <div>
@@ -47,7 +47,7 @@ export default function NavigationTab({
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center gap-2 px-4 text-base font-medium whitespace-nowrap transition-colors ${
+                  className={`flex items-center gap-2 px-4 text-base whitespace-nowrap transition-colors ${
                     isActive
                       ? 'underline text-primary'
                       : 'hover:underline hover:text-primary text-muted-foreground'
@@ -60,7 +60,7 @@ export default function NavigationTab({
             {role === 'admin' && (
               <Link
                 href="/students"
-                className={`flex items-center gap-1.5 px-4 text-base font-medium whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-1.5 px-4 text-base whitespace-nowrap transition-colors ${
                   pathname === '/students'
                     ? 'underline text-primary'
                     : 'hover:underline hover:text-primary text-muted-foreground'
@@ -77,13 +77,13 @@ export default function NavigationTab({
               <span className="hidden text-base text-muted-foreground sm:block">
                 {studentId ? `ID: ${studentId}` : email}
               </span>
-              <Button className="h-10 px-4 font-oswald gap-2" onClick={onClick}>
+              <Button className=" px-4 gap-2" onClick={onClick}>
                 Sign Out
               </Button>
             </>
           ) : (
             <Link href="/sign-in">
-              <Button className="h-10 px-8 font-oswald">Login</Button>
+              <Button className=" px-8 ">Login</Button>
             </Link>
           )}
         </div>

@@ -28,12 +28,12 @@ import {
   Mail,
   RectangleEllipsis,
 } from 'lucide-react';
-import { signInSchema } from '../schemas/authSchemas';
+import { adminSignInSchema } from '../schemas/authSchemas';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-type SignInFormData = z.infer<typeof signInSchema>;
+type SignInFormData = z.infer<typeof adminSignInSchema>;
 
 export default function AdminSignInForm() {
   const router = useRouter();
@@ -41,7 +41,6 @@ export default function AdminSignInForm() {
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
 
-  // Check for verification success
   useEffect(() => {
     if (searchParams.get('verified') === 'true') {
       toast.success('Email verified successfully!', {
@@ -55,7 +54,7 @@ export default function AdminSignInForm() {
     handleSubmit,
     formState: { errors },
   } = useForm<SignInFormData>({
-    resolver: zodResolver(signInSchema),
+    resolver: zodResolver(adminSignInSchema),
     defaultValues: {
       email: '',
       password: '',
@@ -108,7 +107,7 @@ export default function AdminSignInForm() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full font-serif max-w-md mx-auto">
       <CardHeader className="flex flex-col items-center">
         <CardTitle className="text-2xl">SIGN IN</CardTitle>
         <CardDescription>Sign in with your email and password</CardDescription>

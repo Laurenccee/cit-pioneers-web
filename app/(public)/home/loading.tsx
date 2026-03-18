@@ -1,19 +1,10 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function DashboardLoading() {
+export default function HomeLoading() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Nav skeleton */}
-      <header className="sticky top-0 z-10 border-b border-border bg-card shadow-sm">
-        <div className="container mx-auto flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-9 w-9 rounded-lg" />
-            <Skeleton className="h-5 w-32" />
-          </div>
-          <Skeleton className="h-8 w-20" />
-        </div>
-      </header>
 
       <main className="container mx-auto space-y-8 px-6 py-8">
         {/* Welcome banner skeleton */}

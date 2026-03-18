@@ -26,18 +26,17 @@ service cloud.firestore {
     // Helper function to validate profile data structure
     function isValidProfileData() {
       let data = request.resource.data;
-      return data.keys().hasAll(['uid', 'firstName', 'lastName', 'studentId', 'email', 'course', 'major', 'year', 'section', 'emailVerified', 'profileCompleted', 'role', 'createdAt', 'updatedAt'])
+      return data.keys().hasAll(['uid', 'firstName', 'lastName', 'studentId', 'course', 'major', 'year', 'section', 'profileCompleted', 'mustChangePassword', 'role', 'createdAt', 'updatedAt'])
         && data.uid is string && data.uid.size() > 0
         && data.firstName is string && data.firstName.size() >= 2
         && data.lastName is string && data.lastName.size() >= 2
         && data.studentId is string && data.studentId.size() == 6 && data.studentId.matches('^[0-9]{6}$')
-        && data.email is string
         && data.course is string && data.course.size() >= 2
         && data.major is string && data.major.size() >= 2
         && data.year is number && data.year >= 1 && data.year <= 4
         && data.section is string && data.section.size() >= 1
-        && data.emailVerified is bool
         && data.profileCompleted is bool
+        && data.mustChangePassword is bool
         && data.role in ['admin', 'student'];
     }
     
@@ -53,38 +52,25 @@ service cloud.firestore {
         && request.resource.data.studentId.matches('^[0-9]{6}$');
     }
     
-    // Users collection - documents are keyed by uid
-    match /users/{uid} {
-      // Admins can create a profile for any user
-      // Regular users can only create their own profile (self-registration)
-      allow create: if isEmailVerified()
+    // Students collection - documents are keyed by uid
+    match /students/{uid} {
+      // Only admins can create student profiles
+      allow create: if isAdmin()
                     && isValidStudentID()
-                    && isValidProfileData()
-                    && (
-                      // Self-registration: owns the doc, role must be 'student'
-                      (isOwner(uid)
-                        && isValidUID(uid)
-                        && request.resource.data.email == request.auth.token.email
-                        && request.resource.data.emailVerified == true
-                        && request.resource.data.profileCompleted == true
-                        && request.resource.data.role == 'student')
-                      ||
-                      // Admin creating a student profile
-                      isAdmin()
-                    );
+                    && isValidProfileData();
       
-      // Users can read their own profile
       // Any authenticated user can read profiles (needed for studentId duplicate checking)
       allow read: if isAuthenticated();
       
-      // Users can update their own profile
-      // Cannot change uid, email, emailVerified status, or studentId after creation
-      allow update: if isOwner(uid)
-                    && request.resource.data.uid == resource.data.uid
-                    && request.resource.data.studentId == resource.data.studentId
-                    && request.resource.data.email == resource.data.email
-                    && request.resource.data.emailVerified == resource.data.emailVerified
-                    && isValidProfileData();
+      // Admins can do a full profile update (with validation).
+      // Students can only flip mustChangePassword and updatedAt on their own document.
+      allow update: if (isAdmin() && isValidProfileData())
+                    || (isOwner(uid)
+                        && request.resource.data.uid == resource.data.uid
+                        && request.resource.data.studentId == resource.data.studentId
+                        && request.resource.data.role == resource.data.role
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                            .hasOnly(['mustChangePassword', 'updatedAt']));
       
       // No deletions allowed
       allow delete: if false;
@@ -99,6 +85,30 @@ service cloud.firestore {
     // Pre-registered students — only admins can read/write
     match /preregistered_students/{docId} {
       allow read, write: if isAdmin();
+    }
+
+    // Schedule — authenticated users can read; only admins can write
+    match /schedule/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // News — authenticated users can read; only admins can write
+    match /news/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Events — authenticated users can read; only admins can write
+    match /events/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Announcements — authenticated users can read; only admins can write
+    match /announcements/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
 
     // Deny all other requests by default

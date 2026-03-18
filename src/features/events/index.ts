@@ -1,6 +1,2 @@
-export {
-  addEvent,
-  getEvents,
-  deleteEvent,
-} from './services/eventService';
+export { addEvent, getEvents, deleteEvent } from './services/eventService';
 export type { EventItem } from './services/eventService';

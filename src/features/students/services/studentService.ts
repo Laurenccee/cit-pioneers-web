@@ -7,18 +7,18 @@ import {
   query,
   where,
 } from 'firebase/firestore';
-import type { UserProfile } from '@/types';
+import type { StudentProfile } from '@/types';
 
-const USERS_COLLECTION = 'users';
+const USERS_COLLECTION = 'students';
 
-export async function getAllStudents(): Promise<UserProfile[]> {
+export async function getAllStudents(): Promise<StudentProfile[]> {
   try {
     const q = query(
       collection(db, USERS_COLLECTION),
       where('role', '==', 'student'),
     );
     const snap = await getDocs(q);
-    return snap.docs.map((d) => d.data() as UserProfile);
+    return snap.docs.map((d) => d.data() as StudentProfile);
   } catch (error) {
     console.error('Error fetching students:', error);
     return [];
@@ -43,7 +43,6 @@ export async function createStudentAccount(
   uid: string,
   firstName: string,
   lastName: string,
-  email: string,
   studentId: string,
   course: string,
   major: string,
@@ -52,11 +51,10 @@ export async function createStudentAccount(
   mustChangePassword = false,
 ): Promise<boolean> {
   try {
-    const profile: UserProfile = {
+    const profile: StudentProfile = {
       uid,
       firstName,
       lastName,
-      email,
       studentId,
       course,
       major,

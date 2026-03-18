@@ -5,23 +5,23 @@
 /* @custom-variant dark (&:is(.dark *)); */
 
 :root {
-  --background: #e1e5ea;
-  --foreground: oklch(0.25 0.01 238.25);
-  --card: #fcfafe;
+  --background: #f4f4f4;
+  --foreground: #363636;
+  --card: #fcfcfc;
   --card-foreground: oklch(0.25 0.01 238.25);
-  --popover: oklch(0.95 0.006 238.25);
+  --popover: #f5f6f6;
   --popover-foreground: oklch(0.25 0.01 238.25);
   --primary: #78081c;
   --primary-foreground: oklch(0.98 0.005 238.25);
-  --secondary: oklch(0.87 0.008 238.25);
-  --secondary-foreground: oklch(0.25 0.01 238.25);
+  --secondary: oklch(0 0 0);
+  --secondary-foreground: #fdfdfd;
   --muted: oklch(0.88 0.007 238.25);
-  --muted-foreground: oklch(0.5 0.02 238.25);
-  --accent: oklch(0.45 0.18 24.32);
-  --accent-foreground: oklch(0.98 0.005 238.25);
+  --muted-foreground: #363636;
+  --accent: #eaeae8;
+  --accent-foreground: #78081c;
   --destructive: oklch(0.55 0.22 24.32);
   --border: oklch(0.82 0.01 238.25);
-  --input: oklch(0.82 0.01 238.25);
+  --input: #f5f6f6;
   --ring: oklch(0.35 0.15 24.32);
   --chart-1: oklch(0.35 0.15 24.32);
   --chart-2: oklch(0.45 0.18 24.32);
@@ -89,11 +89,6 @@
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-}
-
 .dark {
   --background: oklch(0.18 0.008 238.25);
   --foreground: oklch(0.92 0.006 238.25);
@@ -103,7 +98,7 @@ body {
   --popover-foreground: oklch(0.92 0.006 238.25);
   --primary: oklch(0.45 0.18 24.32);
   --primary-foreground: oklch(0.98 0.005 238.25);
-  --secondary: oklch(0.25 0.01 238.25);
+  --secondary: oklch(0 0 0);
   --secondary-foreground: oklch(0.92 0.006 238.25);
   --muted: oklch(0.26 0.012 238.25);
   --muted-foreground: oklch(0.65 0.015 238.25);
@@ -132,10 +127,15 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
+    background-color: var(--background);
+    background-image: radial-gradient(rgba(0, 0, 0, 0.5) 1px, transparent 0);
+    background-size: 100px 100px;
+    background-attachment: fixed;
+  }
+  body {
+    @apply text-foreground;
+    min-height: 100vh;
   }
 }

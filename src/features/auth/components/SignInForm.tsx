@@ -24,16 +24,16 @@ import {
   ArrowRight,
   Eye,
   EyeClosed,
+  Hash,
   Loader,
-  Mail,
   RectangleEllipsis,
 } from 'lucide-react';
-import { signInSchema } from '../schemas/authSchemas';
+import { studentSignInSchema } from '../schemas/authSchemas';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-type SignInFormData = z.infer<typeof signInSchema>;
+type SignInFormData = z.infer<typeof studentSignInSchema>;
 
 export default function SignInForm() {
   const router = useRouter();
@@ -45,9 +45,9 @@ export default function SignInForm() {
     handleSubmit,
     formState: { errors },
   } = useForm<SignInFormData>({
-    resolver: zodResolver(signInSchema),
+    resolver: zodResolver(studentSignInSchema),
     defaultValues: {
-      email: '',
+      studentId: '',
       password: '',
     },
   });
@@ -58,10 +58,23 @@ export default function SignInForm() {
         const { signInWithEmailAndPassword } = await import('firebase/auth');
         const { auth } = await import('@/lib/firebase');
 
-        await signInWithEmailAndPassword(auth, data.email, data.password);
+        const syntheticEmail = `${data.studentId}@pioneers.local`;
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          syntheticEmail,
+          data.password,
+        );
+
+        const { getUserProfile } =
+          await import('@/features/auth/services/userService');
+        const profile = await getUserProfile(userCredential.user.uid);
 
         toast.success('Signed in successfully!');
-        router.push('/home');
+        if (profile?.mustChangePassword) {
+          router.push('/change-password');
+        } else {
+          router.push('/home');
+        }
         router.refresh();
       } catch (error: any) {
         console.error('Firebase sign in error:', error);
@@ -86,9 +99,9 @@ export default function SignInForm() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full font-serif max-w-md mx-auto">
       <CardHeader className="flex flex-col items-center">
-        <CardTitle className="text-2xl">SIGN IN</CardTitle>
+        <CardTitle className="text-2xl">Sign In</CardTitle>
         <CardDescription>
           Sign in with your Student ID and password
         </CardDescription>
@@ -98,21 +111,22 @@ export default function SignInForm() {
           <div className="space-y-2">
             <Label htmlFor="studentId">Student ID</Label>
             <Controller
-              name="email"
+              name="studentId"
               control={control}
               render={({ field }) => (
                 <InputGroup>
                   <InputGroupAddon>
-                    <Mail />
+                    <Hash />
                   </InputGroupAddon>
                   <InputGroupInput
                     {...field}
                     id="studentId"
                     type="text"
                     placeholder="Enter your Student ID"
+                    maxLength={6}
                     disabled={isPending}
-                    autoComplete="email"
-                    aria-invalid={!!errors.email}
+                    autoComplete="username"
+                    aria-invalid={!!errors.studentId}
                   />
                 </InputGroup>
               )}
@@ -159,6 +173,7 @@ export default function SignInForm() {
       </form>
       <CardFooter className="flex flex-col space-y-4">
         <Button
+          variant="default"
           size="lg"
           type="submit"
           form="signin-form"

@@ -10,17 +10,27 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { formatDate } from '@/lib/date';
-import DashboardLoading from './loading';
 import ScheduleCard from '@/features/dashboard/components/ScheduleCard';
 import EventsCard from '@/features/dashboard/components/EventsCard';
 import Link from 'next/link';
 import { Timer } from 'lucide-react';
+import HomeLoading from './loading';
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from '@/components/ui/combobox';
+import { degree } from '@/lib/data/positionOptions';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
-export default function DashboardPage() {
-  const { loading, loadingProfile, profile } = useAuth();
+export default function HomePage() {
+  const { loading, loadingProfile, profile, isAdmin } = useAuth();
 
   if (loading || loadingProfile) {
-    return <DashboardLoading />;
+    return <HomeLoading />;
   }
 
   return (
@@ -33,9 +43,7 @@ export default function DashboardPage() {
               <p className="text-4xl text-black">
                 Good Morning,{' '}
                 <span className="text-primary">
-                  {!profile
-                    ? 'Guest'
-                    : `${profile.lastName}, ${profile.firstName} `}
+                  {isAdmin ? 'Admin' : profile?.firstName || 'Student'}
                 </span>
               </p>
               <h1 className="text-muted-foreground text-lg">
@@ -124,6 +132,13 @@ export default function DashboardPage() {
                 </p>
               </div>
             </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Announcement</CardTitle>
+              <CardDescription>Important announcements for you</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3"></CardContent>
           </Card>
         </div>
 
